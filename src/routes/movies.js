@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const router = Router();
-const crypto = require('crypto')
-const _ = require('underscore')
+const crypto = require('crypto');
+//const _ = require('underscore');
 
 const movies = require('../sample.json');
 
@@ -24,7 +24,7 @@ router.post('/', (req, res) => {
 });
 
 
-router.delete('/:id', (req, res) => {
+/*router.delete('/:id', (req, res) => {
     let isDelete = false;
     const { id } = req.params;
     _.each(movies, (movie, i) => {
@@ -39,10 +39,23 @@ router.delete('/:id', (req, res) => {
         return;
     }
     res.json(movies);
-});
+});*/
+
+router.delete('/:id', (req, res) => {
+    const { id } = req.params;
+    const movieIdIndex = movies.findIndex(movie => movies.id == id)
+    if (movieIdIndex == -1) {
+        res.status(404).json({ Error: "la pelicula no fue encontrada" })
+        return;
+    }
+    {
+        movies[movieIdIndex].splice(movieIdIndex, 1);
+        res.json(movies);
+    }
+})
 
 
-router.put('/:id', (req, res) => {
+/*router.put('/:id', (req, res) => {
     const { id } = req.params;
     const { title, director, year, rating, imgURL } = req.body;
     if (title && director && year && rating && imgURL) {
@@ -61,7 +74,25 @@ router.put('/:id', (req, res) => {
     } else {
         res.status(500).json({ error: 'Ocurrio un ERROR.' })
     }
+});*/
+
+router.put('/:id', (req, res) => {
+    const { id } = req.params;
+    const { title, director, year, rating, imgURL } = req.body;
+    if (!title || !director || !year || !rating || !imgURL) {
+        res.status(400).json({ error: "Faltan datos." })
+        return;
+    }
+    const movieIndex = movies.findIndex(movie => movies.id == id)
+    if (movieIndex == -1) {
+        res.status(404).json({ Error: "la pelicula no fue encontrada" })
+        return;
+    }
+    movies[movieIndex] = { id, title, director, year, rating, imgURL };
+    res.json(movies)
 });
+
+
 
 
 module.exports = router;
