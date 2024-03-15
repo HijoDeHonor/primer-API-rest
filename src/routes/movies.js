@@ -1,14 +1,19 @@
 const { Router } = require('express');
 const router = Router();
 const crypto = require('crypto');
-//const _ = require('underscore');
 
-const movies = require('../sample.json');
+
+const persistence = require('../persistence.js');
+const listaDePelis = 'src/sample.json';
 
 
 router.get('/', (req, res) => {
+    const movies = persistence.leerArchivo(listaDePelis);
+    
     res.json(movies);
+
 });
+
 
 router.post('/', (req, res) => {
 
@@ -20,74 +25,43 @@ router.post('/', (req, res) => {
     //const id = movies[movies.length-1].id + 1; es la linea que se trata de evitar
     const nuevaPeli = { ...req.body, id };
     console.log(nuevaPeli);
+    let movies = persistence.leerArchivo(listaDePelis)
     movies.push(nuevaPeli);
+    persistence.escribirArchivo(listaDePelis, movies);
     res.status(201).json(movies); // retornamos el status 201 (creado) y adicionalmente el arreglo nuevo.
 });
 
-
-/*router.delete('/:id', (req, res) => {
-    let isDelete = false;
-    const { id } = req.params;
-    _.each(movies, (movie, i) => {
-        if (movie.id == id) {
-            movies.splice(i, 1);
-            isDelete = true;
-        }
-    });
-
-    if (!isDelete) {
-        res.status(404).json({ error: "No se encontro la id" });
-        return;
-    }
-    res.json(movies);
-});*/
-
 router.delete('/:id', (req, res) => {
     const { id } = req.params;
-    const movieIdIndex = movies.findIndex(movie => movie.id == id)
-    if (movieIdIndex == -1) {
-        res.status(404).json({ Error: "la pelicula no fue encontrada" })
-        return;
-    }
-    movies[movieIdIndex].splice(movieIdIndex, 1);
-    res.json(movies);
-})
-
-
-/*router.put('/:id', (req, res) => {
-    const { id } = req.params;
-    const { title, director, year, rating, imgURL } = req.body;
-    if (title && director && year && rating && imgURL) {
-        _.each(movies, (movie, i) => {
-            if (movie.id == id) {
-                movie.title = title;
-                movie.director = director;
-                movie.year = year;
-                movie.rating = rating;
-                movie.imgURL = imgURL;
-            }
-
-        });
-        res.json(movies);
-
-    } else {
-        res.status(500).json({ error: 'Ocurrio un ERROR.' })
-    }
-});*/
-
-router.put('/:id', (req, res) => {
-    const { id } = req.params;
-    const { title, director, year, rating, imgURL } = req.body;
-    if (!title || !director || !year || !rating || !imgURL || !id) {
-        res.status(400).json({ error: "Faltan datos." })
-        return;
-    }
-    const movieIndex = movies.findIndex(movie => movies.id == id)
+    let movies = persistence.leerArchivo(listaDePelis);
+    const movieIndex = movies.findIndex(movie => movie.id == id)
     if (movieIndex == -1) {
         res.status(404).json({ Error: "la pelicula no fue encontrada" })
         return;
     }
+    movies.splice(movieIndex, 1);
+    persistence.escribirArchivo(listaDePelis, movies);
+    res.json({message: 'La pelicula ha sido eliminada correcatamente'});
+})
+
+
+
+router.put('/:id', (req, res) => {
+    const { id } = req.params;
+    const { title, director, year, rating, imgURL } = req.body;
+
+    if (!title || !director || !year || !rating || !imgURL || !id) {
+        res.status(400).json({ error: "Faltan datos." })
+        return;
+    }
+    let movies = persistence.leerArchivo(listaDePelis)
+    const movieIndex = movies.findIndex(movie => movie.id == id)
+    if (movieIndex === -1) {
+        res.status(404).json({ Error: "la pelicula no fue encontrada" })
+        return;
+    }
     movies[movieIndex] = { id, title, director, year, rating, imgURL };
+    persistence.escribirArchivo(listaDePelis, movies)
     res.json(movies)
 });
 
