@@ -41,7 +41,7 @@ router.delete('/:id', (req, res) => {
     }
     movies.splice(movieIndex, 1);
     persistence.escribirArchivo(listaDePelis, movies);
-    res.json({message: 'La pelicula ha sido eliminada correcatamente'});
+    res.json(movies);
 })
 
 
