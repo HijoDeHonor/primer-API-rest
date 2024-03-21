@@ -1,41 +1,54 @@
-const fs = require('fs')
+const database = require('./database.js');
 
-function leerArchivo(fileName) {
+
+async function leerPeliculas() {
     try {
-        let data = fs.readFileSync(fileName, 'utf8')
-        console.log(`Contenido del archivo '${fileName}' leído correctamente.`)
-        return JSON.parse(data);  // Parsea el contenido del archivo JSON
+        let data = await database.getMovies();
+        console.log(`Peliculas ObtenIdas.`);
+        console.log(data, 'data')
+        return data;
 
     } catch (error) {
-        console.error('Error al parsear el contenido del archivo JSON:', error.message);
-        throw new Error('Error al parsear el archivo:', error);
+        console.error(error.message);
+        throw error;
     }
-
 }
 
-function escribirArchivo(fileName, newFile) {
-    let newfilejson = JSON.stringify(newFile)
+async function borrarPelicula(Id) {
     try {
-        fs.writeFileSync(fileName, newfilejson, 'utf8');
-        console.log(`La lista se ha guardado en el archivo '${fileName}' correctamente.`);
-        return leerArchivo(fileName);
-    } catch {
-        console.error('Error al guardar el archivo:', error);
-        return null;
+        console.log(Id, 'persistence')
+        await database.deleteMovie(Id)
+        console.log('La pelicula fue Borrada.')
+    } catch (error) {
+        console.error(error.message);
+        throw error;
     }
 }
 
+async function modificarPelicula(Id, Title, Director, Year, Rating, ImgURl) {
+    try {
+        await database.modifyMovie(Id, Title, Director, Year, Rating, ImgURl)
+        console.log('La pelicula fue Modificada.')
+    } catch (error) {
+        console.error(error.message);
+        throw error;
+    }
+}
 
-
-
-
-
-
-
-
+async function crearNuevaPelicula(pelicula) {
+    try {
+        const { Id, Title, Director, Year, Rating, ImgURL } = pelicula;
+        await database.createNewMovie(Id, Title, Director, Year, Rating, ImgURL)
+        console.log('La pelicula fue Creada.')
+    } catch (error) {
+        console.error(error.message);
+        throw error;
+    }
+}
 
 module.exports = {
-    leerArchivo,
-    escribirArchivo
+    leerPeliculas,
+    borrarPelicula,
+    modificarPelicula,
+    crearNuevaPelicula
 };
-

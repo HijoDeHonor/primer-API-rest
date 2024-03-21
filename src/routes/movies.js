@@ -1,71 +1,63 @@
 const { Router } = require('express');
 const router = Router();
 const crypto = require('crypto');
-
+const database = require('../database.js');
 
 const persistence = require('../persistence.js');
-const listaDePelis = 'src/sample.json';
+const { ok } = require('assert');
 
 
-router.get('/', (req, res) => {
-    const movies = persistence.leerArchivo(listaDePelis);
-    
+
+router.get('/', async (req, res) => {
+    const movies = await persistence.leerPeliculas();
+    console.log(movies, 'movies get')
     res.json(movies);
 
 });
 
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
 
-    if (!req.body.title || !req.body.director || !req.body.year || !req.body.rating || !req.body.imgURL) {//siempre tratar de ir por el camino mas corto y
+    if (!req.body.Title || !req.body.Director || !req.body.Year || !req.body.Rating || !req.body.ImgURL) {//siempre tratar de ir por el camino mas corto y
         res.status(400).json({ error: "Faltan datos." });                                                 //si es un error ponerlo al principio
         return;                                                                                           //para al retornar no usar tantas lineas para arriba.
     }
-    const id = crypto.randomUUID(); //se usa esta linea para no repetir id, en vez de la de abajo que prodrian llegar a repetirse
-    //const id = movies[movies.length-1].id + 1; es la linea que se trata de evitar
-    const nuevaPeli = { ...req.body, id };
-    console.log(nuevaPeli);
-    let movies = persistence.leerArchivo(listaDePelis)
-    movies.push(nuevaPeli);
-    persistence.escribirArchivo(listaDePelis, movies);
-    res.status(201).json(movies); // retornamos el status 201 (creado) y adicionalmente el arreglo nuevo.
+    const Id = crypto.randomUUID();//genera una "id" random de 36 caracteres.
+    const nuevaPeli = { ...req.body, Id };
+    await persistence.crearNuevaPelicula(nuevaPeli);
+    res.status(201).json(await persistence.leerPeliculas()); // retornamos el status 201 (creado) y adicionalmente el arreglo nuevo.
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
     const { id } = req.params;
-    let movies = persistence.leerArchivo(listaDePelis);
-    const movieIndex = movies.findIndex(movie => movie.id == id)
-    if (movieIndex == -1) {
+    console.log(id, 'movies')
+    if (!await database.ObtenerPelicula(id)) {
         res.status(404).json({ Error: "la pelicula no fue encontrada" })
         return;
     }
-    movies.splice(movieIndex, 1);
-    persistence.escribirArchivo(listaDePelis, movies);
-    res.json(movies);
+    await persistence.borrarPelicula(id);
+    res.json(await persistence.leerPeliculas())
 })
 
 
 
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
     const { id } = req.params;
-    const { title, director, year, rating, imgURL } = req.body;
+    const { Title, Director, Year, Rating, ImgURL } = req.body;
 
-    if (!title || !director || !year || !rating || !imgURL || !id) {
+    if (!Title || !Director || !Year || !Rating || !ImgURL || !id) {
         res.status(400).json({ error: "Faltan datos." })
         return;
     }
-    let movies = persistence.leerArchivo(listaDePelis)
-    const movieIndex = movies.findIndex(movie => movie.id == id)
+    let movies = await persistence.leerPeliculas()
+    console.log(movies, 'movies put')
+    const movieIndex = movies.findIndex(movie => movie.Id == id)
     if (movieIndex === -1) {
         res.status(404).json({ Error: "la pelicula no fue encontrada" })
         return;
     }
-    movies[movieIndex] = { id, title, director, year, rating, imgURL };
-    persistence.escribirArchivo(listaDePelis, movies)
-    res.json(movies)
+    await persistence.modificarPelicula(id, Title, Director, Year, Rating, ImgURL)
+    res.json(await persistence.leerPeliculas())
 });
-
-
-
 
 module.exports = router;
