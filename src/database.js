@@ -17,7 +17,6 @@ async function getMovies() {//get
     FROM Movies
     ORDER BY Created_At ASC;
     `)
-    console.log([rows], 'rows')
     return rows
 }
 
@@ -40,7 +39,6 @@ async function createNewMovie(Id, Title, Director, Year, Rating, imgurl) {//post
 }
 
 async function deleteMovie(Id) {//delete.
-    console.log(Id, 'Id database')
     const movieToDelet = await pool.query(`
     DELETE FROM Movies 
     WHERE Id = ?

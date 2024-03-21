@@ -10,7 +10,6 @@ const { ok } = require('assert');
 
 router.get('/', async (req, res) => {
     const movies = await persistence.leerPeliculas();
-    console.log(movies, 'movies get')
     res.json(movies);
 
 });
@@ -29,8 +28,7 @@ router.post('/', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-    const { id } = req.params;
-    console.log(id, 'movies')
+    const { id } = req.params;    
     if (!await database.ObtenerPelicula(id)) {
         res.status(404).json({ Error: "la pelicula no fue encontrada" })
         return;
@@ -50,7 +48,6 @@ router.put('/:id', async (req, res) => {
         return;
     }
     let movies = await persistence.leerPeliculas()
-    console.log(movies, 'movies put')
     const movieIndex = movies.findIndex(movie => movie.Id == id)
     if (movieIndex === -1) {
         res.status(404).json({ Error: "la pelicula no fue encontrada" })

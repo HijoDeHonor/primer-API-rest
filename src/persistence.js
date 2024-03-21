@@ -5,7 +5,6 @@ async function leerPeliculas() {
     try {
         let data = await database.getMovies();
         console.log(`Peliculas ObtenIdas.`);
-        console.log(data, 'data')
         return data;
 
     } catch (error) {
@@ -16,7 +15,6 @@ async function leerPeliculas() {
 
 async function borrarPelicula(Id) {
     try {
-        console.log(Id, 'persistence')
         await database.deleteMovie(Id)
         console.log('La pelicula fue Borrada.')
     } catch (error) {
